@@ -18,7 +18,7 @@ local function clear()
   os.execute('clear')
 end
 
-local line = '---------'
+local line = '-------------'
 local sep  = '|'
 
 local function fmt(str, num)
@@ -26,7 +26,10 @@ local function fmt(str, num)
 end
 
 local function makeLine(data, start)
-  return fmt(data[start], start) .. ' ' .. sep .. ' ' .. fmt(data[start + 1], start + 1) .. ' ' .. sep .. ' ' .. fmt(data[start + 2], start + 2)
+  return sep
+    .. ' ' .. fmt(data[start], start)         .. ' ' .. sep
+    .. ' ' .. fmt(data[start + 1], start + 1) .. ' ' .. sep
+    .. ' ' .. fmt(data[start + 2], start + 2) .. ' ' .. sep
 end
 
 local function trim(s)
@@ -62,6 +65,11 @@ local function initGlobals()
       ' ', ' ', ' ',
       ' ', ' ', ' ',
       ' ', ' ', ' '
+    },
+
+    past = {
+      ['x'] = {},
+      ['o'] = {}
     },
 
     err = nil
@@ -129,6 +137,16 @@ while globals.running do
   end
 
   globals.board[idx] = globals.turn
+
+  -- Actual phantom part
+  local history = globals.past[globals.turn]
+  table.insert(history, idx)
+  if #history >= 4 then
+    globals.board[history[1]] = ' '
+    table.remove(history, 1)
+  end
+
+  -- TODO: Check win
 
   -- Change turn
   globals.turn = globals.turn == __turns.x and __turns.o or __turns.x
