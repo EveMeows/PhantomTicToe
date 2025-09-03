@@ -40,7 +40,7 @@ sudo pacman -S luajit git
 Now, we can clone the repository and run the game.
 
 ```bash
-git clone https://github.com/EveMeows/phantomTicTacToe
+git clone https://github.com/EveMeows/phantomTicTac
 cd phantomTicTacToe
 
 luajit ./main.lua
