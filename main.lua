@@ -26,7 +26,11 @@ local function fmt(str, num)
 end
 
 local function makeLine(data, start)
-  return fmt(data[1], start) .. ' ' .. sep .. ' ' .. fmt(data[2], start + 1) .. ' ' .. sep .. ' ' .. fmt(data[3], start + 2)
+  return fmt(data[start], start) .. ' ' .. sep .. ' ' .. fmt(data[start + 1], start + 1) .. ' ' .. sep .. ' ' .. fmt(data[start + 2], start + 2)
+end
+
+local function trim(s)
+  return (s:gsub("^%s*(.-)%s*$", "%1"))
 end
 
 local commands = {}
@@ -43,8 +47,8 @@ local function pushCommand(name, callback)
 end
 
 local __turns = {
-  x = 'X',
-  o = 'O'
+  x = 'x',
+  o = 'o'
 }
 
 local globals = {}
@@ -53,11 +57,14 @@ local function initGlobals()
     running = true,
 
     turn = __turns.x,
+    turnCount = 1,
     board = {
-      {' ', ' ', ' '},
-      {' ', ' ', ' '},
-      {' ', ' ', ' '}
-    }
+      ' ', ' ', ' ',
+      ' ', ' ', ' ',
+      ' ', ' ', ' '
+    },
+
+    err = nil
   }
 end
 -- @region fields
@@ -79,12 +86,18 @@ end)
 while globals.running do
   clear()
 
+  print('Phantom TicTacToe! (turn ' .. globals.turnCount .. ')\n')
+
+  if globals.err then
+    print('ERR: ' .. globals.err .. '\n')
+  end
+
   -- Draw board
-  print(makeLine(globals.board[1], 1))
+  print(makeLine(globals.board, 1))
   print(line)
-  print(makeLine(globals.board[2], 4))
+  print(makeLine(globals.board, 4))
   print(line)
-  print(makeLine(globals.board[3], 7))
+  print(makeLine(globals.board, 7))
 
   -- Derp
   print()
@@ -96,16 +109,31 @@ while globals.running do
   local query = io.read()
 
   -- First, check if query is a command
-  local cmd = commands[query]
+  local cmd = commands[trim(query)]
   if cmd then
     cmd()
     goto continue
   end
 
-  -- TODO: query is a number
+  -- Handle board
+  local idx = tonumber(trim(query))
+  if idx == nil then
+    globals.err = 'Index or Command is invalid.'
+    goto continue
+  end
+
+  local space = globals.board[idx]
+  if space == nil or space ~= ' ' then
+    globals.err = 'Space does not exist or is already occupied.'
+    goto continue
+  end
+
+  globals.board[idx] = globals.turn
 
   -- Change turn
   globals.turn = globals.turn == __turns.x and __turns.o or __turns.x
+  globals.turnCount = globals.turnCount + 1
 
+  globals.err = nil
   ::continue::
 end
