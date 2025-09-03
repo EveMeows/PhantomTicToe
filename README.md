@@ -22,7 +22,7 @@ Available commands are
 ## Game rules
 Phantom TicTacToe is almost identical to the regular TicTacToe, the only difference is, there can only be 3 (three) marks on the board at a time. Once there are more, the first mark placed will dissapear!
 
-# Building and installation
+# Running without installing
 The game is written entirely in LuaJIT, so running is super easy.
 
 First, we have to install LuaJIT and it's dependencies.
@@ -47,7 +47,7 @@ luajit ./main.lua
 ```
 
 # Installing
-If you want something more, like an executable you can use core.c to create it.
+If you want something more, like an executable, you can use core.c to create it.
 
 ```bash
 # Linux
