@@ -47,20 +47,26 @@ luajit ./main.lua
 ```
 
 # Installing
-If you want something more, like an executable you can use srlua to create it.
+If you want something more, like an executable you can use core.c to create it.
 
 ```bash
-git clone https://github.com/LuaDist/srlua
-cd srlua
+# Linux
 
-# On windows, you must have VS2022 installed with the C/C++ tools, and open a developer powershell instance.
+# Arch
+sudo pacman -S luajit gcc xxd
+# Fedora
+sudo dnf install luajit-devel gcc xxd
+# Ubuntu
+sudo apt install libluajit-5.1-dev gcc xxd
 
-gcc -o srlua srlua.c -lluajit
-gcc -o glue glue.c
+# Convert main.lua into a C-readable bytearray.
+xxd -i main.lua > main_lua.h
 
-# Now, you can create the executable
-# Leave out the .exe if on linux.
-./glue srlua ./main.lua ./phantom.exe
+gcc -o phantom core.c main_lua.h -I/usr/include/luajit-2.1 -lluajit-5.1 -lm
+sudo mv phantom /usr/local/bin
+
+# Windows
+# TODO! I no longer a windows machine :(
 ```
 
 # License
