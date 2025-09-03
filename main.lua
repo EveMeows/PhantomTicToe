@@ -18,6 +18,8 @@ local function clear()
   os.execute('clear')
 end
 
+local maxPartsOnBoard = 4
+
 local line = '-------------'
 local sep  = '|'
 
@@ -54,6 +56,27 @@ local __turns = {
   o = 'o'
 }
 
+local __states = {
+  playing = 'p',
+  winner  = 'w'
+}
+
+local winConditions = {
+  -- Horizontals
+  {1,2,3},
+  {4,5,6},
+  {7,8,9},
+
+  -- Verticals
+  {1,4,7},
+  {2,5,8},
+  {3,6,9},
+
+  -- Diagonals
+  {1,5,9},
+  {3,5,7}
+}
+
 local globals = {}
 local function initGlobals()
   globals = {
@@ -72,7 +95,9 @@ local function initGlobals()
       ['o'] = {}
     },
 
-    err = nil
+    err = nil,
+
+    state = __states.playing
   }
 end
 -- @region fields
@@ -93,65 +118,94 @@ end)
 
 while globals.running do
   clear()
+  if globals.state == __states.playing then
+    print('Phantom TicTacToe! (turn ' .. globals.turnCount .. ')\n')
 
-  print('Phantom TicTacToe! (turn ' .. globals.turnCount .. ')\n')
+    if globals.err then
+      print('ERR: ' .. globals.err .. '\n')
+    end
 
-  if globals.err then
-    print('ERR: ' .. globals.err .. '\n')
+    -- Draw board
+    print(makeLine(globals.board, 1))
+    print(line)
+    print(makeLine(globals.board, 4))
+    print(line)
+    print(makeLine(globals.board, 7))
+
+    -- Derp
+    print()
+
+    -- Prompt
+    io.write(globals.turn .. "'s turn!\n")
+    io.write('> ')
+
+    local query = io.read()
+
+    -- First, check if query is a command
+    local cmd = commands[trim(query)]
+    if cmd then
+      cmd()
+      goto continue
+    end
+
+    -- Handle board
+    local idx = tonumber(trim(query))
+    if idx == nil then
+      globals.err = 'Index or Command is invalid.'
+      goto continue
+    end
+
+    local space = globals.board[idx]
+    if space == nil or space ~= ' ' then
+      globals.err = 'Space does not exist or is already occupied.'
+      goto continue
+    end
+
+    globals.board[idx] = globals.turn
+
+    -- Actual phantom part
+    local history = globals.past[globals.turn]
+    table.insert(history, idx)
+    if #history >= maxPartsOnBoard then
+      globals.board[history[1]] = ' '
+      table.remove(history, 1)
+    end
+
+    -- Win condition check
+    for _,condition in pairs(winConditions) do
+      -- You are winner!!!!!!!!!!!!!!!
+      if  globals.board[condition[1]] == globals.turn
+      and globals.board[condition[2]] == globals.turn
+      and globals.board[condition[3]] == globals.turn then
+        globals.state = __states.winner
+        goto continue
+      end
+    end
+
+    -- Change turn
+    globals.turn = globals.turn == __turns.x and __turns.o or __turns.x
+    globals.turnCount = globals.turnCount + 1
+
+    globals.err = nil
+  elseif globals.state == __states.winner then
+    print(makeLine(globals.board, 1))
+    print(line)
+    print(makeLine(globals.board, 4))
+    print(line)
+    print(makeLine(globals.board, 7))
+
+    print()
+
+    print(globals.turn .. ' won in ' .. globals.turnCount .. ' turns!')
+
+    io.write('Would you like to play again? (Y/n) ')
+    local answer = io.read()
+
+    if answer == 'y' or answer == 'Y' then
+      initGlobals()
+    else
+      os.exit(0)
+    end
   end
-
-  -- Draw board
-  print(makeLine(globals.board, 1))
-  print(line)
-  print(makeLine(globals.board, 4))
-  print(line)
-  print(makeLine(globals.board, 7))
-
-  -- Derp
-  print()
-
-  -- Prompt
-  io.write(globals.turn .. "'s turn!\n")
-  io.write('> ')
-
-  local query = io.read()
-
-  -- First, check if query is a command
-  local cmd = commands[trim(query)]
-  if cmd then
-    cmd()
-    goto continue
-  end
-
-  -- Handle board
-  local idx = tonumber(trim(query))
-  if idx == nil then
-    globals.err = 'Index or Command is invalid.'
-    goto continue
-  end
-
-  local space = globals.board[idx]
-  if space == nil or space ~= ' ' then
-    globals.err = 'Space does not exist or is already occupied.'
-    goto continue
-  end
-
-  globals.board[idx] = globals.turn
-
-  -- Actual phantom part
-  local history = globals.past[globals.turn]
-  table.insert(history, idx)
-  if #history >= 4 then
-    globals.board[history[1]] = ' '
-    table.remove(history, 1)
-  end
-
-  -- TODO: Check win
-
-  -- Change turn
-  globals.turn = globals.turn == __turns.x and __turns.o or __turns.x
-  globals.turnCount = globals.turnCount + 1
-
-  globals.err = nil
   ::continue::
 end
