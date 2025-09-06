@@ -64,9 +64,6 @@ xxd -i main.lua > main_lua.h
 
 gcc -o phantom core.c main_lua.h -I/usr/include/luajit-2.1 -lluajit-5.1 -lm
 sudo mv phantom /usr/local/bin
-
-# Windows
-# TODO! I no longer a windows machine :(
 ```
 
 # License
